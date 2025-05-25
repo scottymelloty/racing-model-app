@@ -1,7 +1,7 @@
 streamlit
 pandas
-numpy
+selenium
+webdriver-manager
 beautifulsoup4
 requests
-selenium
-streamlit-aggrid
+tabulate
