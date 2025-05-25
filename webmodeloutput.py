@@ -183,7 +183,6 @@ def fetch_race_card_data(url):
     ]
 
     df = pd.DataFrame(race_data, columns=columns)
-    df.to_csv(csv_filename, index=False, encoding='utf-8')
     print("=====================================")
     print(f"Race card data successfully saved as '{csv_filename}'.")
     return csv_filename
