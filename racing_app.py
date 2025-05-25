@@ -1,27 +1,27 @@
 import streamlit as st
-st.set_page_config(page_title="Racing Model App", layout="wide")  # Must be first
-
 from streamlitmodel import fetch_race_card_data, model_race
-from st_aggrid import AgGrid, GridOptionsBuilder
 import pandas as pd
+
+# ✅ MUST be the first Streamlit command
+st.set_page_config(page_title="Racing Model App", layout="wide")
 
 st.title("🏇 Sporting Life Racing Model")
 st.markdown("Paste in a racecard URL from Sporting Life and click **Run Model** to generate predictions.")
 
-# Input field
+# 🌐 User input
 url = st.text_input("Paste Sporting Life Race URL:")
 
-# Run Model
+# ▶️ Run Model Button
 if st.button("Run Model"):
     if url.strip() == "":
         st.warning("⚠️ Please enter a race URL first.")
     else:
         with st.spinner("⏳ Fetching race data and running model..."):
             try:
-                # Fetch data
+                # 🐎 Step 1: Scrape & Save Race CSV
                 filename = fetch_race_card_data(url)
 
-                # Default weights
+                # ⚙️ Step 2: Define default model weights
                 default_weights = {
                     "odds": 40,
                     "official_rating": 10,
@@ -41,35 +41,28 @@ if st.button("Run Model"):
                     "class": 20
                 }
 
-                # Run model
-                df = model_race(filename, default_weights)
+                # 🧠 Step 3: Run the model
+                output_df = model_race(filename, default_weights)
 
-                # Rename columns
-                df = df.rename(columns={
+                # 🎉 Step 4: Show Results
+                st.success("✅ Model completed successfully!")
+                st.markdown("### 📊 Model Output")
+
+                # Rename columns to be clearer for the user
+                display_df = output_df.rename(columns={
+                    "Odds": "Bookie Odds",
                     "CFO": "Modelled Odds",
                     "MV": "Model Rating"
                 })
 
-                st.success("✅ Model completed successfully!")
-                st.markdown("### 📊 Model Output")
-
-                # Configure AgGrid
-                gb = GridOptionsBuilder.from_dataframe(df)
-                gb.configure_columns(
-                    ["Odds", "Modelled Odds", "Model Rating", "Value"],
-                    cellStyle={"textAlign": "center"},
-                    width=100
-                )
-                gb.configure_column("Horse Name", width=200)
-                gb.configure_default_column(resizable=True, filter=True, sortable=True)
-
-                AgGrid(
-                    df,
-                    gridOptions=gb.build(),
-                    fit_columns_on_grid_load=False,
-                    theme="material",
-                    height=600
-                )
+                # Show output nicely
+                st.dataframe(display_df.style.set_properties(
+                    **{
+                        'text-align': 'center',
+                        'font-size': '14px'
+                    }
+                ), use_container_width=True)
 
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
+
