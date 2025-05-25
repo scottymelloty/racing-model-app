@@ -1,29 +1,31 @@
 import streamlit as st
-from streamlitmodel import fetch_race_card_data, model_race
 import pandas as pd
+from weboutputmodel import fetch_race_card_data, model_race
 
-# ✅ Set this as the first Streamlit command
-st.set_page_config(page_title="Racing Model App", layout="wide")
+# Set page title and layout
+st.set_page_config(page_title="Racing Model", layout="wide")
 
-# 🎯 Page Title & Instructions
+# Title of the app
 st.title("🏇 Sporting Life Racing Model")
-st.markdown("Paste in a racecard URL from [Sporting Life](https://www.sportinglife.com/racing/racecards) and click **Run Model** to generate predictions.")
 
-# 🔗 URL Input
-url = st.text_input("Paste Sporting Life Race URL:")
+# Prompt for the URL
+st.markdown("Enter a Sporting Life Race URL to generate predictions:")
 
-# 🧠 Run Model
+# URL input field
+url = st.text_input("Race URL", "")
+
+# Run Model Button
 if st.button("Run Model"):
     if url.strip() == "":
-        st.warning("⚠️ Please enter a race URL first.")
+        st.warning("⚠️ Please enter a valid race URL first.")
     else:
-        with st.spinner("⏳ Fetching race data and running model..."):
+        with st.spinner("⏳ Running model and fetching data..."):
             try:
-                # 1. Scrape data and save as CSV
-                filename = fetch_race_card_data(url)
+                # Fetch the race data (you can modify the fetch function as needed)
+                csv_filename = fetch_race_card_data(url)
 
-                # 2. Define model weights (already tuned in your streamlitmodel.py)
-                default_weights = {
+                # Define model weights (You can adjust the weights as needed)
+                weights = {
                     "odds": 40,
                     "official_rating": 10,
                     "past_performance": 45,
@@ -42,34 +44,13 @@ if st.button("Run Model"):
                     "class": 20
                 }
 
-                # 3. Run the model
-                output_df = model_race(filename, default_weights)
+                # Use the model to get predictions
+                results_df = model_race(csv_filename, weights)
 
-                # 4. Display nicely
+                # Display the results in a nice table
                 st.success("✅ Model completed successfully!")
                 st.markdown("### 📊 Model Output")
-
-                # Rename columns for clarity
-                output_df.columns = ["Horse", "Bookie Odds", "Modelled Odds", "Model Rating", "Value"]
-
-                # Apply CSS style to center align and control column widths
-                st.markdown("""
-                    <style>
-                    .dataframe th {
-                        text-align: center !important;
-                    }
-                    .dataframe td {
-                        text-align: center !important;
-                        max-width: 120px !important;
-                        white-space: nowrap;
-                        overflow: hidden;
-                    }
-                    </style>
-                """, unsafe_allow_html=True)
-
-                # Display the model output
-                st.dataframe(output_df, use_container_width=True)
-
+                st.dataframe(results_df, use_container_width=True)
+                
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
-
